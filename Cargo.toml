@@ -1,0 +1,6 @@
+[package]
+name = "temp-raytracer"
+version = "0.1.0"
+authors = ["goncalopalaio <goncalopalaio@gmail.com>"]
+
+[dependencies]

@@ -33,3 +33,5 @@
 *.su
 
 bin/*
+/target/
+**/*.rs.bk
