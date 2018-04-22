@@ -1,5 +1,6 @@
 # temp-raytracer
 Quick raytracer experiment. Early stages.
+Original version
 
 #### Heavily inspired by:
 - [Ray Tracing in One Weekend by Peter Shirley Book 1](https://www.amazon.com/Ray-Tracing-Weekend-Minibooks-Book-ebook/dp/B01B5AODD8)
