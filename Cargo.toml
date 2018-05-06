@@ -1,7 +1,0 @@
-[package]
-name = "temp-raytracer"
-version = "0.1.0"
-authors = ["goncalopalaio"]
-
-[dependencies]
-minifb = "0.10.4"
