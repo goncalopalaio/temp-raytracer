@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <GLFW/glfw3.h>
-#include "../../gl_crap.h"
+#include "../glfw_fb.h"
 
 //#define FB_ARGB(a, r, g, b) (((unsigned int)a) << 24) | (((unsigned int)r) << 16) | (((unsigned int)g) << 8) | b
 #define FB_RGB(r, g, b) (((unsigned int)b) << 16) | (((unsigned int)g) << 8) | r
@@ -32,11 +32,10 @@ void fb_error_callback(int error, const char* description) {
     printf("%s\n", description);
 }
 
-int fb_open() {
+int fb_start(const char* window_title) {
 	int window_w = 1000;
 	int window_h = 300;
-	const char* window_name = {"Hello"};
-	printf("fb_open\n");
+	printf("fb_open %s\n", window_title);
 
 	if (!glfwInit()) {
 		printf("error in glfwInit\n");
@@ -45,7 +44,7 @@ int fb_open() {
 
 	printf("fb_open init\n");
 
-	GLFWwindow* window = glfwCreateWindow(window_w, window_h, window_name, NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(window_w, window_h, window_title, NULL, NULL);
 	
 	if (!window) {
 		printf("error creating window\n");		
@@ -73,9 +72,9 @@ int fb_open() {
     glMatrixMode(GL_MODELVIEW);
 
 	// setup texture
-	int tex_w = window_w * 2;
-	int tex_h = window_h * 2;
-    unsigned int texDat[tex_w * tex_h];
+	int tex_w = fb_get_texture_width();
+	int tex_h = fb_get_texture_height();
+    unsigned int* tex_data = NULL;
 
     GLuint tex;
     glGenTextures(1, &tex);
@@ -90,24 +89,13 @@ int fb_open() {
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 		// generate texture
-		for (int i = 0; i < tex_w; ++i) {
-			for (int j = 0; j < tex_h; ++j) {
-				if (i < 10) {
-					texDat[i + j * tex_w] = FB_RGB(200, 1, 1);	
-				} else if (i % ((50 + timestep % 200)) <= 50) {
-					texDat[i + j * tex_w] = FB_RGB(0, 255, 0);	
-				} else {
-					texDat[i + j * tex_w] = FB_RGB(1, 1, 255);	
-				}
-			}
-		}
-
+		tex_data = fb_update(timestep);
 
 		// upload texture 
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, texDat);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_w, tex_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data);
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 

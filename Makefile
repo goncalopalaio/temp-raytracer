@@ -18,9 +18,8 @@ raytracer: main.o glfwfb.o $(GLFW_FB_OBJECTS)
 main.o: main.cpp
 	$(CC) $(CFLAGS) main.cpp
 
-glfwfb.o: $(GLFW_FB_SOURCES)
+glfwfb.o: $(GLFW_FB_SOURCES) 
 	echo "building glfw_fb"
-	cp $(GLFW_FB_INCLUDE_FILE) $(GLFW_FB_SOURCE_DIR)
 	$(CC) $(CFLAGS) $(GLFW_FB_SOURCES) $(LIBS)
 
 clean:
