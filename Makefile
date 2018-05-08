@@ -1,26 +1,27 @@
 CC=g++
 LIBS :=
 # 
-CFLAGS=-c -Wall
-MINIFB_INCLUDE_FILE := "minifb/include/MiniFB.h"
-MINIFB_SOURCE_DIR := "minifb/src/macosx/"
-MINIFB_SOURCES := $(shell find $(MINIFB_SOURCE_DIR) -name "*.m")
-MINIFB_OBJECTS := $(patsubst %.c, %.o, $(MINIFB_SOURCES))
+CFLAGS=-c -Wall -I/usr/local/include
+GLFW_FB_INCLUDE_FILE := "glfw_fb/glfw_fb.h"
+GLFW_FB_SOURCE_DIR := "glfw_fb/src"
+GLFW_FB_SOURCES := $(shell find $(GLFW_FB_SOURCE_DIR) -name "*.cpp")
+GLFW_FB_OBJECTS := $(patsubst %.c, %.o, $(GLFW_FB_SOURCES))
 
-LIBS := -framework Cocoa -L/usr/local/lib
+LIBS := -lglfw -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo -lm -lGLEW -L/usr/local/lib
 
 
 all: raytracer
 
-raytracer: main.o $(MINIFB_OBJECTS)
+raytracer: main.o glfwfb.o $(GLFW_FB_OBJECTS)
 	$(CC) *.o -o raytracer $(LIBS)
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) main.cpp
 
-minifb.o: $(MINIFB_SOURCES)
-	cp $(MINIFB_INCLUDE_FILE) $(MINIFB_SOURCE_DIR)
-	$(CC) $(CFLAGS) $(MINIFB_SOURCES)
+glfwfb.o: $(GLFW_FB_SOURCES)
+	echo "building glfw_fb"
+	cp $(GLFW_FB_INCLUDE_FILE) $(GLFW_FB_SOURCE_DIR)
+	$(CC) $(CFLAGS) $(GLFW_FB_SOURCES) $(LIBS)
 
 clean:
 	rm *o raytracer
