@@ -20,7 +20,7 @@ unsigned int* fb_update(int timestep) {
 		for (int j = 0; j < HEIGHT; ++j) {
 			if (i < 10) {
 				buffer[i + j * WIDTH] = FB_RGB(200, 1, 1);	
-			} else if (i % ((50 + timestep % 200)) <= 50) {
+			} else if (i % ((50 + timestep % 200)) <= 10) {
 				buffer[i + j * WIDTH] = FB_RGB(0, 255, 0);	
 			} else {
 				buffer[i + j * WIDTH] = FB_RGB(1, 1, 255);	

@@ -1,10 +1,25 @@
 #include <stdio.h>
 #include <GLFW/glfw3.h>
 #include "../glfw_fb.h"
-
+#include "../stb_easy_font.h"
 //#define FB_ARGB(a, r, g, b) (((unsigned int)a) << 24) | (((unsigned int)r) << 16) | (((unsigned int)g) << 8) | b
 #define FB_RGB(r, g, b) (((unsigned int)b) << 16) | (((unsigned int)g) << 8) | r
 
+// debug font rendering
+
+void print_string(float x, float y, char *text, float r, float g, float b) {
+	static char buffer[99999]; // ~500 chars
+	int num_quads;
+
+	num_quads = stb_easy_font_print(x, y, text, NULL, buffer, sizeof(buffer));
+
+	//glColor3f(r,g,b);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 16, buffer);
+	glDrawArrays(GL_QUADS, 0, num_quads*4);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+	
 // callbacks
 
 void fb_close_callback(GLFWwindow* window) {
@@ -68,7 +83,7 @@ int fb_start(const char* window_title) {
 
   	// setup matrices
     glMatrixMode(GL_PROJECTION);
-    glOrtho(0, window_w, 0, window_h, -1, 1);
+    glOrtho(0, window_w, window_h, 0, -1, 1);
     glMatrixMode(GL_MODELVIEW);
 
 	// setup texture
@@ -107,15 +122,16 @@ int fb_start(const char* window_title) {
 		glBindTexture(GL_TEXTURE_2D, tex);
 		glEnable(GL_TEXTURE_2D);
 		glBegin(GL_QUADS);
-		glTexCoord2i(0, 0); glVertex2i(10, 10);
-		glTexCoord2i(0, 1); glVertex2i(10, h - 10);
-		glTexCoord2i(1, 1); glVertex2i(w - 10, h - 10);
-		glTexCoord2i(1, 0); glVertex2i(w - 10, 10);
+			glTexCoord2i(0, 0); glVertex2i(10, 10);
+			glTexCoord2i(0, 1); glVertex2i(10, h - 10);
+			glTexCoord2i(1, 1); glVertex2i(w - 10, h - 10);
+			glTexCoord2i(1, 0); glVertex2i(w - 10, 10);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 		glFlush(); //don't need this with GLUT_DOUBLE and glutSwapBuffers
 
+		print_string(110, 110, "->this is debug text<-\n", 0.1f, 0.1f, 0.1f);
 
 		++timestep;
 		glfwSwapBuffers(window);
