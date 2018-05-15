@@ -47,9 +47,7 @@ void fb_error_callback(int error, const char* description) {
     printf("%s\n", description);
 }
 
-int fb_start(const char* window_title) {
-	int window_w = 1000;
-	int window_h = 300;
+int fb_start(const char* window_title, int window_w, int window_h) {
 	printf("fb_open %s\n", window_title);
 
 	if (!glfwInit()) {
