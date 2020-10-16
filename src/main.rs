@@ -1,8 +1,10 @@
-use std::time::Duration;
 use imgui::*;
 use imgui_glium_renderer::Texture;
 use std::borrow::Cow;
+use std::ops::Add;
+use std::ops::Mul;
 use std::rc::Rc;
+use std::time::Duration;
 use std::time::Instant;
 
 use glium::{
@@ -13,10 +15,91 @@ use glium::{
 
 mod support;
 
-const TEX_WIDTH: usize = 400;
-const TEX_HEIGHT: usize = 400;
+const TEX_WIDTH: usize = 200;
+const TEX_HEIGHT: usize = 200;
 const N_COMPONENTS: usize = TEX_WIDTH * TEX_HEIGHT * 3;
 
+const RAYS_LOWER_LEFT_CORNER: V3 = V3 {
+    x: 0.0,
+    y: 0.0,
+    z: 0.0,
+};
+const RAYS_HORIZONTAL: V3 = V3 {
+    x: 1.0,
+    y: 0.0,
+    z: 0.0,
+};
+const RAYS_VERTICAL: V3 = V3 {
+    x: 0.0,
+    y: 1.0,
+    z: 0.0,
+};
+const RAYS_ORIGIN: V3 = V3 {
+    x: 0.0,
+    y: 0.0,
+    z: 0.0,
+};
+
+#[derive(Clone, Copy, Debug)]
+struct Ray {
+    origin: V3,
+    direction: V3,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct V3 {
+    x: f32,
+    y: f32,
+    z: f32,
+}
+
+impl Add for V3 {
+    type Output = V3;
+
+    fn add(self, other: V3) -> V3 {
+        V3 {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        }
+    }
+}
+
+impl Mul for V3 {
+    type Output = V3;
+
+    fn mul(self, other: V3) -> V3 {
+        V3 {
+            x: self.x * other.x,
+            y: self.y * other.y,
+            z: self.z * other.z,
+        }
+    }
+}
+
+impl Mul<f32> for V3 {
+    type Output = V3;
+
+    fn mul(self, t: f32) -> V3 {
+        V3 {
+            x: self.x * t,
+            y: self.y * t,
+            z: self.z * t,
+        }
+    }
+}
+
+impl Mul<V3> for f32 {
+    type Output = V3;
+
+    fn mul(self, v: V3) -> V3 {
+        V3 {
+            x: self * v.x,
+            y: self * v.y,
+            z: self * v.z,
+        }
+    }
+}
 
 struct State {
     iteration: i32,
@@ -26,6 +109,10 @@ struct State {
     checked: bool,
     text: ImString,
     texture: Option<TextureId>,
+}
+
+fn compute_color(ray: &Ray, _timestep: f32) -> V3 {
+    return ray.direction;
 }
 
 fn main() {
@@ -43,6 +130,7 @@ fn main() {
 
     let mut data: [u8; N_COMPONENTS] = [0; N_COMPONENTS];
 
+    let mut timestep = 0.0;
     let mut main_elapsed: Duration = Duration::new(0, 0);
     system.main_loop(move |_, ui, textures, ctx| {
         state.iteration += 1;
@@ -52,15 +140,26 @@ fn main() {
 
         for i in 0..TEX_WIDTH {
             for j in 0..TEX_HEIGHT {
-                // Insert RGB values
-                data[(i * 3) + (j * 3) * TEX_WIDTH + 0] = state.red;
-                data[(i * 3) + (j * 3) * TEX_WIDTH + 1] = state.blue;
-                data[(i * 3) + (j * 3) * TEX_WIDTH + 2] = state.green;
+                let u = (i as f32) / (TEX_WIDTH as f32);
+                let v = (j as f32) / (TEX_HEIGHT as f32);
+
+                let ray = Ray {
+                    origin: RAYS_ORIGIN,
+                    direction: RAYS_LOWER_LEFT_CORNER + u * RAYS_HORIZONTAL + v * RAYS_VERTICAL,
+                };
+
+                let color = compute_color(&ray, timestep);
+
+                data[(i * 3) + (j * 3) * TEX_WIDTH + 0] =
+                    ((state.red as f32) * (1.0 + color.x)) as u8;
+                data[(i * 3) + (j * 3) * TEX_WIDTH + 1] =
+                    ((state.blue as f32) * (1.0 + color.y)) as u8;
+                data[(i * 3) + (j * 3) * TEX_WIDTH + 2] =
+                    ((state.green as f32) * (1.0 + color.z)) as u8;
             }
         }
 
         let fill_elapsed = fill_time.elapsed();
-
 
         let raw = RawImage2d {
             data: Cow::Borrowed(&data),
@@ -91,7 +190,6 @@ fn main() {
             .size([300.0, 400.0], Condition::FirstUseEver)
             .position([10.0, 10.0], Condition::FirstUseEver)
             .build(ui, || {
-                
                 ui.text(&format!("checked: {}", &state.checked));
                 ui.text(&format!("text: {}", &state.text));
                 ui.separator();
@@ -105,13 +203,12 @@ fn main() {
                 Slider::new(im_str!("red"))
                     .range(0..=254)
                     .build(&ui, &mut state.red);
-                    Slider::new(im_str!("green"))
+                Slider::new(im_str!("green"))
                     .range(0..=254)
                     .build(&ui, &mut state.green);
                 Slider::new(im_str!("blue"))
                     .range(0..=254)
                     .build(&ui, &mut state.blue);
-                
             });
 
         Window::new(im_str!("Render"))
@@ -127,5 +224,6 @@ fn main() {
             });
 
         main_elapsed = main_time.elapsed();
+        timestep += 1.0;
     });
 }
